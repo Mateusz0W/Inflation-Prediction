@@ -36,6 +36,12 @@ def load_inflation(filename="miesiecznewskaznikicentowarowiuslugkonsumpcyjnychod
 # inflacja względem grudnia poprzedniego roku)}
 def load_unemployed(target_inflation_dict, step = 12,
                     filename="Liczba bezrobotnych zarejestrowanych w latach 1990-2025.csv"):
+    def convert_to_float(x):
+        if isinstance(x, float) and np.isnan(x):
+            return np.nan
+        else:
+            return float(str(x).replace(',', '.'))
+
     data = pd.read_csv(filename, encoding="cp1250", sep=";").to_numpy()
     result = {}
     years = data[:, 0]
@@ -45,7 +51,7 @@ def load_unemployed(target_inflation_dict, step = 12,
     data = data[:, 1:]
     values = []
     for year_data in data:
-        values.extend(reversed(year_data))
+        values.extend(reversed([convert_to_float(value) for value in year_data]))
     for (i, value), year in zip(enumerate(values, start=1), years_key):
         if i >= len(values)-step:
             break
