@@ -51,11 +51,11 @@ def normalize_and_split_data_chronologically(model_args_and_inflation_dict, test
     y_test = []
     for args, inflation in zip(normalized_model_args_list, inflation_list):
         if random.random() < test_size:
-            y_train.append(args)
-            y_test.append(inflation)
+           X_test.append(args)
+           y_test.append(inflation)
         else:
             X_train.append(args)
-            X_test.append(inflation)
+            y_train.append(inflation)
     return X_train, X_test, y_train, y_test
 
 # if __name__ == "__main__":
