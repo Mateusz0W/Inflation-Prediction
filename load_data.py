@@ -93,7 +93,7 @@ def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszk
         value = interpolated_data.iloc[i-step:i].tolist()
         date = interpolated_data.index[i]
         key = (date.year,date.month)
-        result[key] = value
+        result[key] = list(reversed(value))
     
     return result
 
@@ -134,7 +134,7 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
         value = interpolated_data.iloc[i-step:i].tolist()
         date = interpolated_data.index[i]
         key = (date.year,date.month)
-        result[key] = value
+        result[key] = list(reversed(value))
     
     return result
 
