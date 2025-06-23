@@ -1,5 +1,7 @@
+from datetime import datetime
 import pandas as pd
 import numpy as np
+import re
 
 # zwraca {(rok, miesiąc): ([inflacja z poprzednich 12 miesięcy względem grudnia 
 # poprzedniego roku, inflacja z poprzednich 12 miesięcy względem poprzedzającego
@@ -117,6 +119,64 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
     interpolated_data = data['Przeciętne miesięczne wynagrodzenie w zł'].reindex(monthly_dates).interpolate(method='linear')
     return {(date.year,date.month): value for date,value in interpolated_data.items()}
 
+def load_notional_amount(filename='Kwoty bazowe od 1999 r.csv'):
+    """
+    Wczytuje kwoty bazowe obowiązujące w danym miesiącu w zł.
+    Zakres od 06.1999 - 12.2025
+    Parameters:
+    -----------
+    filename: str
+        nazwa pliku
+    Returns:
+    --------
+    dict
+        Klucze to krotki (Rok, Miesiąc) np: (2015, 9), wartość to obowiązująca kwota bazowa
+    """
+    df = pd.read_csv(filename, sep=';', encoding='utf-8')
+
+    # Wyciągnięcie daty i kwoty bazowej
+    changes = []
+    for _, row in df.iterrows():
+        date_str = row['Kwota bazowa obowiązuje od:']
+        amount_str = str(row['Kwota w zł']).replace(' ', '').replace(',', '.')
+
+        match = re.search(r'Od (\d+) (marca|czerwca) (\d+) r\.', date_str)
+        if match:
+            day = int(match.group(1))
+            month_name = match.group(2)
+            year = int(match.group(3))
+
+            month = 3 if month_name == 'marca' else 6
+            try:
+                amount = float(amount_str)
+                changes.append((year, month, amount))
+            except ValueError:
+                continue
+
+    # Sortowanie zmian od najstarszej do najnowszej
+    changes.sort()
+
+    # Generowanie pełnego zakresu miesięcy
+    full_range = [(year, month) for year in range(1999, 2026)
+                  for month in range(1, 13)]
+
+    # Wypełnianie słownika końcowego
+    notional_dict = {}
+    current_amount = None
+    change_idx = 0
+
+    for year, month in full_range:
+        if change_idx < len(changes):
+            change_year, change_month, new_amount = changes[change_idx]
+            if (year, month) >= (change_year, change_month):
+                current_amount = new_amount
+                change_idx += 1
+
+        if current_amount is not None:
+            notional_dict[(year, month)] = current_amount
+
+    return notional_dict
+
 if __name__ == "__main__":
     inflation_dict = load_inflation()
     target_inflation_dict = {key: inflation_dict[key][1] for key in inflation_dict}
@@ -124,3 +184,4 @@ if __name__ == "__main__":
     unemployed_dict = load_unemployed()
     building_price_dict = load_building_price()
     avarage_salary_dict = load_avarage_salary()
+    notional_dict = load_notional_amount()
