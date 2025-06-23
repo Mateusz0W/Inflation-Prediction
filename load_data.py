@@ -53,7 +53,68 @@ def load_unemployed(target_inflation_dict, step = 12,
         result[key] = (values[i:i+step], target_inflation_dict[key])
     return result
 
+def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv'):
+    """
+    Wczytuje cene 1m^2 powierzchni użytkowej budynku mieszkalnego.
+    interpoluje wartości kwartalne do wartości miesięcznych.
+    Zakres od 10.1998 - 03.2025
+
+    Parameters:
+    -----------
+    filename: str 
+        nazwa pliku
+    
+    Returns:
+    --------
+    dict
+        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to cena powierzchni użytkowej  
+    """
+    data = pd.read_csv(filename,encoding="cp1250",sep=';')
+
+    data['data'] = pd.to_datetime(data['Rok'].astype(str) + 'Q' + data['Kwartal'].astype(str))
+    data.set_index('data',inplace=True)
+    monthly_dates = pd.date_range(
+        start= data.index.min(),
+        end= data.index.max()+pd.offsets.QuarterEnd(),
+        freq='MS'
+    )
+    interpolated_data = data['Wartosc'].reindex(monthly_dates).interpolate(method='linear')
+
+    return {(date.year,date.month): value for date,value in interpolated_data.items()}
+
+def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospodarce narodowej w latach 1950-2024.csv'):
+    """
+    Wczytuje przeciętne miesięczne wynagrodzenie w zł.
+    Interpoluje wartości roczne do wartości miesięcznych.
+    Zakres od 01.1980 - 12.2024
+
+    Parameters:
+    -----------
+    filename: str 
+        nazwa pliku
+    
+    Returns:
+    --------
+    dict
+        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to przeciętne miesięczne wynagrodzenie w zł.
+    """
+    data = pd.read_csv(filename,sep=';')
+    data['Przeciętne miesięczne wynagrodzenie w zł'] = data['Przeciętne miesięczne wynagrodzenie w zł'].str.replace(' ','').str.replace(',','.').astype(float)
+    
+    data['data']=pd.to_datetime(data['Rok'].astype(str)+'-01-01')
+    data.set_index('data',inplace=True)
+    monthly_dates = pd.date_range(
+        start= data.index.min(),
+        end= "2024-12-01",
+        freq='MS'
+    )
+
+    interpolated_data = data['Przeciętne miesięczne wynagrodzenie w zł'].reindex(monthly_dates).interpolate(method='linear')
+    return {(date.year,date.month): value for date,value in interpolated_data.items()}
+
 if __name__ == "__main__":
     inflation_dict = load_inflation()
     target_inflation_dict = {key: inflation_dict[key][1] for key in inflation_dict}
     unemployed_dict = load_unemployed(target_inflation_dict)
+    building_price_dict = load_building_price()
+    avarage_salary_dict = load_avarage_salary()
