@@ -34,8 +34,7 @@ def load_inflation(filename="miesiecznewskaznikicentowarowiuslugkonsumpcyjnychod
 
 # zwraca {(rok, miesiąc): ([liczba bezrobotnych z poprzednich 12 miesięcy], 
 # inflacja względem grudnia poprzedniego roku)}
-def load_unemployed(target_inflation_dict, step = 12,
-                    filename="Liczba bezrobotnych zarejestrowanych w latach 1990-2025.csv"):
+def load_unemployed(step = 12, filename="Liczba bezrobotnych zarejestrowanych w latach 1990-2025.csv"):
     def convert_to_float(x):
         if isinstance(x, float) and np.isnan(x):
             return np.nan
@@ -56,7 +55,7 @@ def load_unemployed(target_inflation_dict, step = 12,
         if i >= len(values)-step:
             break
         key = (year, 13 - ((i-1) % 12 + 1))
-        result[key] = (values[i:i+step], target_inflation_dict[key])
+        result[key] = values[i:i+step]
     return result
 
 def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv'):
@@ -121,6 +120,7 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
 if __name__ == "__main__":
     inflation_dict = load_inflation()
     target_inflation_dict = {key: inflation_dict[key][1] for key in inflation_dict}
-    unemployed_dict = load_unemployed(target_inflation_dict)
+    inflation_model_args_dict = {key: inflation_dict[key][0] for key in inflation_dict}
+    unemployed_dict = load_unemployed()
     building_price_dict = load_building_price()
     avarage_salary_dict = load_avarage_salary()
