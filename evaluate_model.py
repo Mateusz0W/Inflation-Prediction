@@ -14,7 +14,7 @@ def plot_predicted_inflation(y, y_pred, year):
 
 def calculate_metrics(X, y, model):
     y_pred = model.predict(X)
-    return model.score(X,y), mean_squared_error(y,y_pred), np.sqrt(mean_squared_error(y, y_pred)), mean_absolute_percentage_error(y, y_pred)
+    return model.score(X,y), mean_squared_error(y,y_pred), np.sqrt(mean_squared_error(y, y_pred)).item(), mean_absolute_percentage_error(y, y_pred)
 
 def print_table(columns, values):
     print("\t".join(columns))
