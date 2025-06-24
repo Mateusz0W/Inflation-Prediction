@@ -138,6 +138,45 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
     
     return result
 
+def load_notional_amount(filename='Kwoty bazowe od 1999 r.csv', step=12):
+    """
+    Wczytuje kwoty bazowe obowiązujące w danym miesiącu w zł.
+    Zakres od 06.1999 - 12.2025
+    Parameters:
+    -----------
+    filename: str
+        nazwa pliku
+    Returns:
+    --------
+    dict
+        Klucze to krotki (Rok, Miesiąc) np: (2015, 9), wartość to obowiązująca kwota bazowa
+    """
+    data = pd.read_csv(filename,sep=';')
+    data['Wartość'] = data['Kwota w zł'].str.replace(' ','').str.replace(',','.').astype(float)
+    dates = data['Kwota bazowa obowiązuje od:']
+    new_dates = []
+    for date in dates:
+        new_dates.append(date[-7:-3] + '-01-01')
+    
+    data['data']=pd.to_datetime(new_dates)
+    data.set_index('data',inplace=True)
+    monthly_dates = pd.date_range(
+        start= data.index.min(),
+        end= "2024-12-01",
+        freq='MS'
+    )
+    
+    interpolated_data = data['Wartość'].reindex(monthly_dates).interpolate(method='linear')
+    interpolated_data = interpolated_data.sort_index()
+    result ={}
+    for i in range(step,len(interpolated_data)):
+        value = interpolated_data.iloc[i-step:i].tolist()
+        date = interpolated_data.index[i]
+        key = (date.year,date.month)
+        result[key] = list(reversed(value))
+    
+    return result
+
 if __name__ == "__main__":
     inflation_dict = load_inflation()
     target_inflation_dict = {key: inflation_dict[key][1] for key in inflation_dict}
