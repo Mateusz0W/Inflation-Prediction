@@ -67,6 +67,19 @@ def prepare_inference_data(inference_data_dict, scaler):
     normalized_model_args_list = scaler.transform(model_args_list)
     return normalized_model_args_list, inflation_list
 
+def prepare_training_data(args_dict_tab, target_inflation_dict, start_year, end_year):
+    if len(args_dict_tab) == 1:
+        result = {}
+        for key in args_dict_tab[0]:
+            if (start_year <= key[0] <= end_year):
+                result[key] = args_dict_tab[0][key]
+    else:
+        result = args_dict_tab[0]
+        for i in range(1, len(args_dict_tab)):
+            result = combine_model_args(result, args_dict_tab[i], start_year, end_year)
+    result = add_target_inflations(result, target_inflation_dict)
+    return result
+
 # if __name__ == "__main__":
 #     inflation_dict = load_inflation()
 #     target_inflation_dict = {key: inflation_dict[key][1] for key in inflation_dict}

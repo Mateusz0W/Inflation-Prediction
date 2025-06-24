@@ -6,7 +6,7 @@ import re
 # zwraca {(rok, miesiąc): ([inflacja z poprzednich 12 miesięcy względem grudnia 
 # poprzedniego roku, inflacja z poprzednich 12 miesięcy względem poprzedzającego
 # je miesiąca], inflacja względem grudnia poprzedniego roku)}
-def load_inflation(filename="miesiecznewskaznikicentowarowiuslugkonsumpcyjnychod1982roku_3.csv",
+def load_inflation(filename="data/miesiecznewskaznikicentowarowiuslugkonsumpcyjnychod1982roku_3.csv",
                   pointer1="Grudzień poprzedniego roku = 100", pointer2="Poprzedni miesiąc = 100",
                    step = 12):
     result_data = pd.DataFrame()
@@ -36,7 +36,7 @@ def load_inflation(filename="miesiecznewskaznikicentowarowiuslugkonsumpcyjnychod
 
 # zwraca {(rok, miesiąc): ([liczba bezrobotnych z poprzednich 12 miesięcy], 
 # inflacja względem grudnia poprzedniego roku)}
-def load_unemployed(step = 12, filename="Liczba bezrobotnych zarejestrowanych w latach 1990-2025.csv"):
+def load_unemployed(step = 12, filename="data/Liczba bezrobotnych zarejestrowanych w latach 1990-2025.csv"):
     def convert_to_float(x):
         if isinstance(x, float) and np.isnan(x):
             return np.nan
@@ -60,7 +60,7 @@ def load_unemployed(step = 12, filename="Liczba bezrobotnych zarejestrowanych w 
         result[key] = values[i:i+step]
     return result
 
-def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv',
+def load_building_price(filename='data/cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv',
                         step = 12):
     """
     Wczytuje cene 1m^2 powierzchni użytkowej budynku mieszkalnego.
@@ -99,7 +99,7 @@ def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszk
     
     return result
 
-def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospodarce narodowej w latach 1950-2024.csv',
+def load_avarage_salary(filename='data/Przeciętne miesięczne wynagrodzenie w gospodarce narodowej w latach 1950-2024.csv',
                         step=12):
     """
     Wczytuje przeciętne miesięczne wynagrodzenie w zł.
@@ -140,7 +140,7 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
     
     return result
 
-def load_notional_amount(filename='Kwoty bazowe od 1999 r.csv', step=12):
+def load_notional_amount(filename='data/Kwoty bazowe od 1999 r.csv', step=12):
     """
     Wczytuje kwoty bazowe obowiązujące w danym miesiącu w zł.
     Zakres od 06.1999 - 12.2025
