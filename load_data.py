@@ -1,5 +1,7 @@
+from datetime import datetime
 import pandas as pd
 import numpy as np
+import re
 
 # zwraca {(rok, miesiąc): ([inflacja z poprzednich 12 miesięcy względem grudnia 
 # poprzedniego roku, inflacja z poprzednich 12 miesięcy względem poprzedzającego
@@ -184,3 +186,4 @@ if __name__ == "__main__":
     unemployed_dict = load_unemployed()
     building_price_dict = load_building_price()
     avarage_salary_dict = load_avarage_salary()
+    notional_dict = load_notional_amount()
