@@ -40,6 +40,7 @@ def normalize_and_split_data(model_args_and_inflation_dict, test_size=0.2):
 # ([lista argumentów dla modelu], docelowa wartość inflacji}. Gwarantuje zachowanie
 # kolejności chronologicznej danych
 def normalize_and_split_data_chronologically(model_args_and_inflation_dict, test_size=0.2):
+    model_args_and_inflation_dict = dict(sorted(model_args_and_inflation_dict.items()))
     dict_values = model_args_and_inflation_dict.values()
     model_args_list = [value[0] for value in dict_values]
     inflation_list = [value[1] for value in dict_values]
@@ -56,7 +57,15 @@ def normalize_and_split_data_chronologically(model_args_and_inflation_dict, test
         else:
             X_train.append(args)
             y_train.append(inflation)
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, standard_scaler
+
+def prepare_inference_data(inference_data_dict, scaler):
+    inference_data_dict = dict(sorted(inference_data_dict.items()))
+    dict_values = inference_data_dict.values()
+    model_args_list = [value[0] for value in dict_values]
+    inflation_list = [value[1] for value in dict_values]
+    normalized_model_args_list = scaler.transform(model_args_list)
+    return normalized_model_args_list, inflation_list
 
 # if __name__ == "__main__":
 #     inflation_dict = load_inflation()
