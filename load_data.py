@@ -60,7 +60,8 @@ def load_unemployed(step = 12, filename="Liczba bezrobotnych zarejestrowanych w 
         result[key] = values[i:i+step]
     return result
 
-def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv'):
+def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszkalnego_oddanego_do_uzytkowania.csv',
+                        step = 12):
     """
     Wczytuje cene 1m^2 powierzchni użytkowej budynku mieszkalnego.
     interpoluje wartości kwartalne do wartości miesięcznych.
@@ -70,11 +71,13 @@ def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszk
     -----------
     filename: str 
         nazwa pliku
+    step: int
+        krok wstecz
     
     Returns:
     --------
     dict
-        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to cena powierzchni użytkowej  
+        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to cena powierzchni użytkowej z step poprzednich miesięcy 
     """
     data = pd.read_csv(filename,encoding="cp1250",sep=';')
 
@@ -86,10 +89,18 @@ def load_building_price(filename='cena_1_m2_powierzchni_uzytkowej_budynku_mieszk
         freq='MS'
     )
     interpolated_data = data['Wartosc'].reindex(monthly_dates).interpolate(method='linear')
+    interpolated_data = interpolated_data.sort_index()
+    result ={}
+    for i in range(step,len(interpolated_data)):
+        value = interpolated_data.iloc[i-step:i].tolist()
+        date = interpolated_data.index[i]
+        key = (date.year,date.month)
+        result[key] = list(reversed(value))
+    
+    return result
 
-    return {(date.year,date.month): value for date,value in interpolated_data.items()}
-
-def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospodarce narodowej w latach 1950-2024.csv'):
+def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospodarce narodowej w latach 1950-2024.csv',
+                        step=12):
     """
     Wczytuje przeciętne miesięczne wynagrodzenie w zł.
     Interpoluje wartości roczne do wartości miesięcznych.
@@ -99,11 +110,13 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
     -----------
     filename: str 
         nazwa pliku
+    step: int
+        krok wstecz
     
     Returns:
     --------
     dict
-        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to przeciętne miesięczne wynagrodzenie w zł.
+        Klucze to krotki (Rok,Miesiąc) np: (2015,9) wartość to przeciętne miesięczne wynagrodzenie w zł z step poprzednich miesięcy 
     """
     data = pd.read_csv(filename,sep=';')
     data['Przeciętne miesięczne wynagrodzenie w zł'] = data['Przeciętne miesięczne wynagrodzenie w zł'].str.replace(' ','').str.replace(',','.').astype(float)
@@ -117,7 +130,54 @@ def load_avarage_salary(filename='Przeciętne miesięczne wynagrodzenie w gospod
     )
 
     interpolated_data = data['Przeciętne miesięczne wynagrodzenie w zł'].reindex(monthly_dates).interpolate(method='linear')
-    return {(date.year,date.month): value for date,value in interpolated_data.items()}
+    interpolated_data = interpolated_data.sort_index()
+    result ={}
+    for i in range(step,len(interpolated_data)):
+        value = interpolated_data.iloc[i-step:i].tolist()
+        date = interpolated_data.index[i]
+        key = (date.year,date.month)
+        result[key] = list(reversed(value))
+    
+    return result
+
+def load_notional_amount(filename='Kwoty bazowe od 1999 r.csv', step=12):
+    """
+    Wczytuje kwoty bazowe obowiązujące w danym miesiącu w zł.
+    Zakres od 06.1999 - 12.2025
+    Parameters:
+    -----------
+    filename: str
+        nazwa pliku
+    Returns:
+    --------
+    dict
+        Klucze to krotki (Rok, Miesiąc) np: (2015, 9), wartość to obowiązująca kwota bazowa
+    """
+    data = pd.read_csv(filename,sep=';')
+    data['Wartość'] = data['Kwota w zł'].str.replace(' ','').str.replace(',','.').astype(float)
+    dates = data['Kwota bazowa obowiązuje od:']
+    new_dates = []
+    for date in dates:
+        new_dates.append(date[-7:-3] + '-01-01')
+    
+    data['data']=pd.to_datetime(new_dates)
+    data.set_index('data',inplace=True)
+    monthly_dates = pd.date_range(
+        start= data.index.min(),
+        end= "2024-12-01",
+        freq='MS'
+    )
+    
+    interpolated_data = data['Wartość'].reindex(monthly_dates).interpolate(method='linear')
+    interpolated_data = interpolated_data.sort_index()
+    result ={}
+    for i in range(step,len(interpolated_data)):
+        value = interpolated_data.iloc[i-step:i].tolist()
+        date = interpolated_data.index[i]
+        key = (date.year,date.month)
+        result[key] = list(reversed(value))
+    
+    return result
 
 def load_notional_amount(filename='Kwoty bazowe od 1999 r.csv'):
     """
